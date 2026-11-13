@@ -1,0 +1,1028 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111622">
+  <title>Kinshasa en mouvement — motion design</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #15343b;
+      --paper: #f7f5eb;
+      --yellow: #ffd735;
+      --coral: #ff582f;
+      --mint: #b7e9df;
+      --muted: #54757b;
+      --ease: cubic-bezier(.2, .75, .25, 1);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+
+    body {
+      background: var(--mint);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    button { font: inherit; }
+
+    .stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      isolation: isolate;
+      background:
+        radial-gradient(ellipse at 75% 38%, rgba(255, 215, 53, .42), transparent 34%),
+        radial-gradient(ellipse at 15% 92%, rgba(255, 88, 47, .15), transparent 32%),
+        linear-gradient(135deg, #c8f0e5, #9fddd5 55%, #c4eadf);
+    }
+
+    .stage::before {
+      position: absolute;
+      z-index: -1;
+      inset: 0;
+      background-image: linear-gradient(rgba(21,52,59,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(21,52,59,.045) 1px, transparent 1px);
+      background-size: 64px 64px;
+      content: "";
+      mask-image: linear-gradient(90deg, transparent, #000 45%, #000);
+    }
+
+    .topbar, .bottombar {
+      position: absolute;
+      z-index: 5;
+      right: clamp(24px, 5vw, 80px);
+      left: clamp(24px, 5vw, 80px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topbar { top: clamp(20px, 4vh, 42px); }
+    .bottombar { bottom: clamp(20px, 4vh, 42px); gap: 20px; }
+
+    .wordmark {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .mark {
+      display: grid;
+      width: 29px;
+      height: 29px;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--yellow);
+      color: var(--ink);
+      font-size: 15px;
+    }
+
+    .location-tag, .eyebrow {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .location-tag { display: flex; align-items: center; gap: 9px; }
+    .location-tag::before { width: 7px; height: 7px; border-radius: 50%; background: var(--coral); content: ""; box-shadow: 0 0 14px rgba(255,88,47,.6); }
+    .top-actions { display: flex; align-items: center; gap: 20px; }
+    .export-wrap { position: relative; }
+    .export-button {
+      display: inline-flex;
+      min-height: 42px;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--coral);
+      box-shadow: 0 7px 16px rgba(220,74,40,.2);
+      color: white;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .04em;
+      transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+    }
+
+    .export-button:hover:not(:disabled) { box-shadow: 0 11px 22px rgba(220,74,40,.3); transform: translateY(-2px); }
+    .export-button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+    .export-button:disabled { cursor: progress; opacity: .7; }
+    .export-status {
+      position: absolute;
+      top: calc(100% + 9px);
+      right: 0;
+      max-width: 290px;
+      color: var(--ink);
+      font-size: 11px;
+      font-weight: 750;
+      text-align: right;
+      text-shadow: 0 1px 5px rgba(255,255,255,.75);
+    }
+
+    .track {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      transition: transform 900ms var(--ease);
+      will-change: transform;
+    }
+
+    .scene {
+      position: relative;
+      display: grid;
+      flex: 0 0 100%;
+      grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      padding: 100px clamp(24px, 8vw, 128px) 90px;
+      gap: clamp(30px, 5vw, 80px);
+      overflow: hidden;
+    }
+
+    .copy { max-width: 610px; opacity: .16; transform: translateY(28px); }
+    .scene.is-active .copy { animation: rise-in 850ms 120ms var(--ease) forwards; }
+
+    .eyebrow { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 22px; }
+    .eyebrow span { color: var(--yellow); }
+
+    h1, h2 {
+      max-width: 650px;
+      margin: 0;
+      font-size: clamp(46px, 6.3vw, 94px);
+      font-weight: 850;
+      letter-spacing: -.075em;
+      line-height: .96;
+    }
+
+    h1 em, h2 em { color: var(--coral); font-style: normal; }
+    .copy p { max-width: 440px; margin: 25px 0 0; color: #365a60; font-size: clamp(16px, 1.5vw, 20px); line-height: 1.6; }
+
+    .chapter {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 37px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .chapter b { color: var(--coral); font-variant-numeric: tabular-nums; }
+    .chapter i { width: 35px; height: 1px; background: #555966; }
+
+    .visual {
+      position: relative;
+      display: flex;
+      min-width: 0;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      perspective: 1000px;
+    }
+
+    .visual::before {
+      position: absolute;
+      width: min(37vw, 520px);
+      aspect-ratio: 1;
+      border: 1px solid rgba(255, 213, 47, .15);
+      border-radius: 50%;
+      content: "";
+      box-shadow: 0 0 0 44px rgba(255, 213, 47, .025), 0 0 0 100px rgba(255, 213, 47, .018);
+    }
+
+    .phone {
+      position: relative;
+      z-index: 1;
+      height: min(70vh, 690px);
+      aspect-ratio: 780 / 1688;
+      overflow: hidden;
+      border: 5px solid #252a35;
+      border-radius: 34px;
+      background: #fff;
+      box-shadow: 0 35px 100px rgba(0,0,0,.52), 0 0 0 1px rgba(255,255,255,.16);
+      opacity: 0;
+      transform: translateY(40px) rotateY(-7deg) rotateZ(-2deg) scale(.96);
+    }
+
+    .phone img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .asset-preload { position: fixed; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    .scene.is-active .phone { animation: phone-in 950ms 180ms var(--ease) forwards; }
+    .phone--back { position: absolute; z-index: 0; height: min(56vh, 560px); filter: brightness(.86) saturate(1.13); }
+    .phone--back.left { transform: translate(-67%, 6%) rotateY(8deg) rotateZ(-9deg) scale(.9); }
+    .phone--back.right { transform: translate(67%, 6%) rotateY(-8deg) rotateZ(9deg) scale(.9); }
+    .scene.is-active .phone--back { animation-delay: 330ms; }
+
+    .float-card {
+      position: absolute;
+      z-index: 3;
+      right: 3%;
+      bottom: 13%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 15px 19px;
+      border: 1px solid rgba(21,52,59,.12);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .87);
+      box-shadow: 0 18px 45px rgba(21,52,59,.18);
+      font-size: 13px;
+      font-weight: 750;
+      opacity: 0;
+      transform: translateY(12px);
+      backdrop-filter: blur(14px);
+    }
+
+    .scene.is-active .float-card { animation: rise-in 650ms 650ms var(--ease) forwards, drift 4s 1.4s ease-in-out infinite; }
+    .float-card b { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 11px; background: var(--yellow); color: var(--ink); font-size: 18px; }
+    .float-card small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 500; }
+    .accent-coral { --accent: var(--coral); }
+    .accent-mint { --accent: var(--mint); }
+    .accent-coral .eyebrow span, .accent-mint .eyebrow span { color: var(--coral); }
+    .accent-coral .chapter b, .accent-mint .chapter b { color: var(--coral); }
+    .accent-coral .visual::before { border-color: rgba(255,88,47,.3); box-shadow: 0 0 0 44px rgba(255,88,47,.07), 0 0 0 100px rgba(255,88,47,.035); }
+    .accent-mint .visual::before { border-color: rgba(21,52,59,.18); box-shadow: 0 0 0 44px rgba(21,52,59,.05), 0 0 0 100px rgba(21,52,59,.025); }
+
+    .controls { display: flex; align-items: center; gap: 9px; }
+
+    .control, .dot {
+      display: grid;
+      width: 40px;
+      height: 40px;
+      place-items: center;
+      border: 1px solid rgba(21,52,59,.19);
+      border-radius: 50%;
+      background: rgba(255,255,255,.42);
+      color: var(--ink);
+      cursor: pointer;
+      transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+    }
+
+    .control:hover, .dot:hover { border-color: var(--coral); background: rgba(255,88,47,.12); transform: translateY(-2px); }
+    .control:focus-visible, .dot:focus-visible { outline: 2px solid var(--coral); outline-offset: 3px; }
+    .dots { display: flex; align-items: center; gap: 8px; }
+    .dot { width: 8px; height: 8px; padding: 0; border: 0; background: #78999a; }
+    .dot[aria-current="true"] { width: 26px; border-radius: 9px; background: var(--coral); }
+    .counter { min-width: 62px; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; text-align: right; }
+    .progress { position: absolute; z-index: 6; top: 0; left: 0; width: 100%; height: 4px; background: rgba(21,52,59,.1); }
+    .progress span { display: block; width: 20%; height: 100%; background: var(--coral); transition: width 550ms var(--ease); }
+
+    @keyframes rise-in { to { opacity: 1; transform: translateY(0); } }
+    @keyframes phone-in { to { opacity: 1; transform: translateY(0) rotateY(-7deg) rotateZ(-2deg) scale(1); } }
+    @keyframes drift { 50% { translate: 0 -7px; } }
+
+    @media (max-width: 760px) {
+      .stage::before { background-size: 42px 42px; }
+      .location-tag { font-size: 10px; }
+      .top-actions { gap: 8px; }
+      .export-button { min-height: 36px; padding: 0 12px; font-size: 10px; }
+      .export-status { max-width: 220px; font-size: 9px; }
+      .scene { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); align-content: center; gap: 4px; padding: 82px 28px 90px; }
+      .copy { z-index: 2; align-self: end; }
+      .eyebrow { margin-bottom: 10px; font-size: 10px; }
+      h1, h2 { max-width: 570px; font-size: clamp(36px, 8vw, 58px); }
+      .copy p { margin-top: 10px; font-size: 14px; }
+      .chapter { margin-top: 12px; font-size: 10px; }
+      .visual { height: clamp(180px, 32vh, 285px); min-height: 0; align-self: start; }
+      .visual::before { width: min(65vw, 340px); }
+      .phone { height: clamp(180px, 32vh, 285px); }
+      .phone--back { height: min(26vh, 240px); }
+      .phone--back.left { transform: translate(-60%, 2%) rotateY(8deg) rotateZ(-9deg) scale(.9); }
+      .phone--back.right { transform: translate(60%, 2%) rotateY(-8deg) rotateZ(9deg) scale(.9); }
+      .float-card { right: -2%; bottom: 8%; padding: 11px 13px; font-size: 11px; }
+      .bottombar { right: 24px; left: 24px; }
+      .wordmark { font-size: 10px; }
+    }
+
+    @media (max-width: 760px) and (max-height: 700px) {
+      .scene { padding-top: 68px; padding-bottom: 76px; }
+      h1, h2 { font-size: clamp(34px, 7vw, 48px); }
+      .copy p { font-size: 13px; }
+      .visual { height: clamp(180px, 27vh, 210px); }
+      .phone { height: clamp(180px, 27vh, 210px); }
+      .phone--back { height: clamp(160px, 22vh, 175px); }
+    }
+
+    @media (max-height: 620px) and (min-width: 761px) {
+      .scene { padding-top: 76px; padding-bottom: 76px; }
+      h1, h2 { font-size: clamp(42px, 5.5vw, 72px); }
+      .copy p { margin-top: 16px; font-size: 16px; }
+      .chapter { margin-top: 22px; }
+      .phone { height: 76vh; }
+      .phone--back { height: 60vh; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; }
+      .track, .progress span { transition-duration: 1ms !important; }
+      .scene.is-active .copy, .scene.is-active .phone, .scene.is-active .float-card { animation-duration: 1ms !important; animation-delay: 0ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage" aria-label="Motion design de l'application de découverte locale à Kinshasa">
+    <div class="progress" aria-hidden="true"><span id="progress"></span></div>
+    <header class="topbar">
+      <div class="wordmark"><span class="mark">K</span> Kinshasa en mouvement</div>
+      <div class="top-actions">
+        <div class="location-tag">Kinshasa · RDC</div>
+        <div class="export-wrap">
+          <button class="export-button" id="export" type="button" aria-describedby="exportStatus">
+            <span aria-hidden="true">↗</span> Exporter la vidéo 4K
+          </button>
+          <span class="export-status" id="exportStatus" role="status" aria-live="polite"></span>
+        </div>
+      </div>
+    </header>
+
+    <div class="track" id="track" aria-live="polite">
+      <section class="scene is-active" aria-label="Découvrir les sorties autour de soi">
+        <div class="copy">
+          <div class="eyebrow"><span>01</span> La ville, en direct</div>
+          <h1>Ta prochaine sortie est <em>juste là.</em></h1>
+          <p>Les bons plans bougent vite. Découvre les événements qui font vibrer Kinshasa, près de toi et au bon moment.</p>
+          <div class="chapter"><b>Découvrir</b><i></i> À deux pas de toi</div>
+        </div>
+        <div class="visual">
+          <div class="phone"><img src="Utilisateur 2 · Événements.png" alt="Écran de découverte des événements à Kinshasa"></div>
+          <img class="asset-preload" src="Utilisateur 1 · Localisation.png" alt="Autorise ta position pour voir les événements et les lieux les plus proches, du plus proche au plus lointain." aria-hidden="true">
+          <div class="float-card"><b>✳</b><span>La ville s’anime<small>Des idées, tout autour de toi</small></span></div>
+        </div>
+      </section>
+
+      <section class="scene accent-mint" aria-label="Explorer les lieux sur la carte">
+        <div class="copy">
+          <div class="eyebrow"><span>02</span> La ville, à portée de main</div>
+          <h2>Un plan te plaît ? <em>On t’y emmène.</em></h2>
+          <p>Explore les lieux, repère ce qui se passe autour de toi et choisis ton prochain arrêt en un clin d’œil.</p>
+          <div class="chapter"><b>Explorer</b><i></i> Carte &amp; itinéraires</div>
+        </div>
+        <div class="visual">
+          <div class="phone phone--back left"><img src="Utilisateur 4 · Détail.png" alt="Détail d’un événement"></div>
+          <div class="phone"><img src="Utilisateur 7 · Carte.png" alt="Carte des événements et lieux à proximité"></div>
+          <div class="float-card"><b style="background:var(--mint)">⌖</b><span>Autour de toi<small>La bonne adresse, au bon moment</small></span></div>
+        </div>
+      </section>
+
+      <section class="scene accent-coral" aria-label="Enregistrer un événement">
+        <div class="copy">
+          <div class="eyebrow"><span>03</span> Ton prochain souvenir</div>
+          <h2>Les moments qui comptent, <em>à garder.</em></h2>
+          <p>Enregistre tes coups de cœur, reçois un rappel et partage le programme avec ceux qui seront de la partie.</p>
+          <div class="chapter"><b>Ne rien rater</b><i></i> Enregistrés &amp; rappels</div>
+        </div>
+        <div class="visual">
+          <div class="phone phone--back right"><img src="Utilisateur 6 · Notifications.png" alt="Notifications de l’application"></div>
+          <div class="phone"><img src="Utilisateur 5 · Enregistrés.png" alt="Liste des événements enregistrés"></div>
+          <div class="float-card"><b style="background:var(--coral)">♡</b><span>Gardé pour toi<small>Ton prochain souvenir est noté</small></span></div>
+        </div>
+      </section>
+
+      <section class="scene" aria-label="Publier un événement">
+        <div class="copy">
+          <div class="eyebrow"><span>04</span> Les idées prennent vie</div>
+          <h2>Tu organises ? <em>Fais-le rayonner.</em></h2>
+          <p>Publie ton événement, mets-le en avant et retrouve toutes les étapes au même endroit.</p>
+          <div class="chapter"><b>Organiser</b><i></i> De l’idée à la scène</div>
+        </div>
+        <div class="visual">
+          <div class="phone phone--back left"><img src="Organisateur 4 · Mise en avant.png" alt="Options de mise en avant d’un événement"></div>
+          <div class="phone"><img src="Organisateur 3 · Événement.png" alt="Formulaire de création d’un événement"></div>
+          <div class="float-card"><b>↗</b><span>À toi de jouer<small>Fais connaître ton événement</small></span></div>
+        </div>
+      </section>
+
+      <section class="scene accent-mint" aria-label="Validation et publication de l’événement">
+        <div class="copy">
+          <div class="eyebrow"><span>05</span> Ensemble, ça se passe ici</div>
+          <h2>Publié. Repéré. <em>Vécu.</em></h2>
+          <p>Une équipe valide, la ville découvre. Et la prochaine belle rencontre commence juste au coin de la rue.</p>
+          <div class="chapter"><b>Kinshasa, maintenant</b><i></i> À toi de sortir</div>
+        </div>
+        <div class="visual">
+          <div class="phone phone--back right"><img src="Équipe · Validation.png" alt="Écran de validation des événements"></div>
+          <div class="phone"><img src="Organisateur 6 · Confirmation.png" alt="Confirmation d’envoi d’un événement"></div>
+          <div class="float-card"><b style="background:var(--mint)">✓</b><span>C’est envoyé<small>Prêt à faire vibrer la ville</small></span></div>
+        </div>
+      </section>
+    </div>
+
+    <footer class="bottombar">
+      <div class="wordmark"><span style="color:var(--muted);font-weight:550;letter-spacing:0">Les bonnes choses arrivent</span></div>
+      <nav class="controls" aria-label="Contrôles de l’animation">
+        <button class="control" id="previous" type="button" aria-label="Scène précédente">‹</button>
+        <div class="dots" id="dots"></div>
+        <button class="control" id="play" type="button" aria-label="Mettre l’animation en pause">Ⅱ</button>
+        <button class="control" id="next" type="button" aria-label="Scène suivante">›</button>
+        <span class="counter" id="counter" aria-hidden="true">01 / 05</span>
+      </nav>
+    </footer>
+  </main>
+
+  <script>
+    (() => {
+      const track = document.getElementById("track");
+      const scenes = Array.from(track.querySelectorAll(".scene"));
+      const dots = document.getElementById("dots");
+      const progress = document.getElementById("progress");
+      const counter = document.getElementById("counter");
+      const playButton = document.getElementById("play");
+      const exportButton = document.getElementById("export");
+      const exportStatus = document.getElementById("exportStatus");
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      let active = 0;
+      let timer;
+      let playing = !reducedMotion;
+
+      scenes.forEach((scene, index) => {
+        const dot = document.createElement("button");
+        dot.className = "dot";
+        dot.type = "button";
+        dot.setAttribute("aria-label", `Aller à la scène ${index + 1}`);
+        dot.addEventListener("click", () => show(index));
+        dots.append(dot);
+      });
+
+      const dotButtons = Array.from(dots.querySelectorAll(".dot"));
+
+      function show(index) {
+        active = (index + scenes.length) % scenes.length;
+        track.style.transform = `translateX(-${active * 100}%)`;
+        scenes.forEach((scene, i) => {
+          scene.classList.toggle("is-active", i === active);
+          scene.setAttribute("aria-hidden", String(i !== active));
+        });
+        dotButtons.forEach((dot, i) => {
+          if (i === active) dot.setAttribute("aria-current", "true");
+          else dot.removeAttribute("aria-current");
+        });
+        progress.style.width = `${((active + 1) / scenes.length) * 100}%`;
+        counter.textContent = `${String(active + 1).padStart(2, "0")} / ${String(scenes.length).padStart(2, "0")}`;
+      }
+
+      function setPlaying(value) {
+        playing = value;
+        playButton.textContent = playing ? "Ⅱ" : "▶";
+        playButton.setAttribute("aria-label", playing ? "Mettre l’animation en pause" : "Reprendre l’animation");
+        window.clearInterval(timer);
+        if (playing) timer = window.setInterval(() => show(active + 1), 6500);
+      }
+
+      document.getElementById("previous").addEventListener("click", () => show(active - 1));
+      document.getElementById("next").addEventListener("click", () => show(active + 1));
+      playButton.addEventListener("click", () => setPlaying(!playing));
+      document.addEventListener("keydown", event => {
+        if (event.key === "ArrowRight") show(active + 1);
+        if (event.key === "ArrowLeft") show(active - 1);
+        if (event.key === " " && event.target.tagName !== "BUTTON") {
+          event.preventDefault();
+          setPlaying(!playing);
+        }
+      });
+      document.querySelector(".stage").addEventListener("mouseenter", () => window.clearInterval(timer));
+      document.querySelector(".stage").addEventListener("mouseleave", () => {
+        if (playing) setPlaying(true);
+      });
+
+      const exportScenes = [
+        {
+          title: ["Kinshasa,", "la ville s’anime."],
+          copy: "Les bons plans bougent vite. Découvre les événements qui font vibrer ta ville.",
+          tag: "DÉCOUVRIR · EXPLORER · VIVRE",
+          screens: ["Écran de découverte des événements à Kinshasa", "Autorise ta position pour voir les événements et les lieux les plus proches, du plus proche au plus lointain."],
+          color: "#ff582f"
+        },
+        {
+          title: ["Ton prochain", "plan est juste là."],
+          copy: "Repère un lieu, suis la carte et choisis ton prochain arrêt en un clin d’œil.",
+          tag: "CARTE · LIEUX · ITINÉRAIRES",
+          screens: ["Carte des événements et lieux à proximité", "Détail d’un événement"],
+          color: "#ffd735"
+        },
+        {
+          title: ["Garde les bons", "moments vivants."],
+          copy: "Enregistre tes coups de cœur et retrouve-les quand l’envie de sortir te reprend.",
+          tag: "ENREGISTRÉS · RAPPELS · PARTAGE",
+          screens: ["Liste des événements enregistrés", "Notifications de l’application"],
+          color: "#ff582f"
+        },
+        {
+          title: ["Fais rayonner", "ton événement."],
+          copy: "Publie ton idée, mets-la en avant et retrouve le suivi au même endroit.",
+          tag: "CRÉER · METTRE EN AVANT · SUIVRE",
+          screens: ["Formulaire de création d’un événement", "Options de mise en avant d’un événement"],
+          color: "#ffd735"
+        },
+        {
+          title: ["Publié.", "Repéré. Vécu."],
+          copy: "L’équipe valide, la ville découvre. La prochaine belle rencontre commence ici.",
+          tag: "KINSHASA · ON SORT ?",
+          screens: ["Confirmation d’envoi d’un événement", "Écran de validation des événements"],
+          color: "#ff582f"
+        }
+      ];
+
+      function roundedPath(context, x, y, width, height, radius) {
+        const r = Math.min(radius, width / 2, height / 2);
+        context.beginPath();
+        context.moveTo(x + r, y);
+        context.arcTo(x + width, y, x + width, y + height, r);
+        context.arcTo(x + width, y + height, x, y + height, r);
+        context.arcTo(x, y + height, x, y, r);
+        context.arcTo(x, y, x + width, y, r);
+        context.closePath();
+      }
+
+      function drawBlob(context, x, y, radius, phase, color) {
+        const wobble = amount => 1 + Math.sin(phase * 2 + amount * 1.7) * .075;
+        const points = Array.from({ length: 8 }, (_, index) => {
+          const angle = index * Math.PI / 4;
+          return {
+            x: x + Math.cos(angle) * radius * wobble(index),
+            y: y + Math.sin(angle) * radius * wobble(index + 3)
+          };
+        });
+        context.beginPath();
+        points.forEach((point, index) => {
+          const next = points[(index + 1) % points.length];
+          const middleX = (point.x + next.x) / 2;
+          const middleY = (point.y + next.y) / 2;
+          if (index === 0) context.moveTo(middleX, middleY);
+          context.quadraticCurveTo(point.x, point.y, middleX, middleY);
+        });
+        context.closePath();
+        context.fillStyle = color;
+        context.fill();
+      }
+
+      function drawKineticLine(context, text, x, baseline, startTime, accent, color) {
+        const words = text.split(" ");
+        const fontSize = 100;
+        const gap = 20;
+        context.font = `900 ${fontSize}px Arial, sans-serif`;
+        let wordX = x;
+        words.forEach((word, index) => {
+          const width = context.measureText(word).width;
+          const progress = Math.max(0, Math.min(1, (startTime - index * .12) / .48));
+          if (progress > 0) {
+            const eased = 1 - Math.pow(1 - progress, 3);
+            context.save();
+            context.beginPath();
+            context.rect(wordX - 3, baseline - fontSize, (width + 8) * eased, fontSize + 30);
+            context.clip();
+            context.globalAlpha = eased;
+            context.fillStyle = index === words.length - 1 ? accent : color;
+            context.fillText(word, wordX, baseline + (1 - eased) * 28);
+            context.restore();
+          }
+          wordX += width + gap;
+        });
+      }
+
+      function wrapCanvasText(context, text, x, y, maxWidth, lineHeight) {
+        const words = text.split(" ");
+        let line = "";
+        let row = 0;
+        words.forEach(word => {
+          const candidate = line ? `${line} ${word}` : word;
+          if (context.measureText(candidate).width > maxWidth && line) {
+            context.fillText(line, x, y + row++ * lineHeight);
+            line = word;
+          } else {
+            line = candidate;
+          }
+        });
+        if (line) context.fillText(line, x, y + row * lineHeight);
+      }
+
+      function drawPhone(context, image, x, y, width, height, angle, alpha) {
+        if (!image || !image.complete || !image.naturalWidth) return;
+        context.save();
+        context.globalAlpha = alpha;
+        context.translate(x + width / 2, y + height / 2);
+        context.rotate(angle);
+        context.translate(-width / 2, -height / 2);
+        context.shadowColor = "rgba(20,50,58,.28)";
+        context.shadowBlur = 32;
+        context.shadowOffsetY = 22;
+        roundedPath(context, 0, 0, width, height, 32);
+        context.fillStyle = "#15343b";
+        context.fill();
+        context.shadowColor = "transparent";
+        roundedPath(context, 8, 8, width - 16, height - 16, 25);
+        context.save();
+        context.clip();
+        context.fillStyle = "#fff";
+        context.fillRect(8, 8, width - 16, height - 16);
+        context.drawImage(image, 10, 10, width - 20, height - 20);
+        context.restore();
+        context.restore();
+      }
+
+      function drawArtwork(context, elapsed, imageSets) {
+        const loopTime = elapsed % 20;
+        const scenePosition = loopTime / 4;
+        const sceneIndex = Math.floor(scenePosition) % exportScenes.length;
+        const sceneProgress = scenePosition - sceneIndex;
+        const scene = exportScenes[sceneIndex];
+        const width = 1920;
+        const height = 1080;
+        const camera = 1.025 + Math.sin(sceneProgress * Math.PI * 2) * .012;
+
+        context.save();
+        context.translate(width / 2, height / 2);
+        context.scale(camera, camera);
+        context.translate(-width / 2 - Math.sin(elapsed * .45) * 12, -height / 2);
+
+        const backdrop = context.createLinearGradient(0, 0, width, height);
+        backdrop.addColorStop(0, "#bdebe2");
+        backdrop.addColorStop(.58, "#a9e3dc");
+        backdrop.addColorStop(1, "#f7e9bc");
+        context.fillStyle = backdrop;
+        context.fillRect(-80, -60, width + 160, height + 120);
+
+        context.save();
+        context.strokeStyle = "rgba(21,52,59,.065)";
+        context.lineWidth = 1;
+        for (let x = 0; x <= width; x += 64) {
+          context.beginPath();
+          context.moveTo(x, 0);
+          context.lineTo(x, height);
+          context.stroke();
+        }
+        for (let y = 0; y <= height; y += 64) {
+          context.beginPath();
+          context.moveTo(0, y);
+          context.lineTo(width, y);
+          context.stroke();
+        }
+        context.restore();
+
+        drawBlob(context, 1580 + Math.sin(loopTime * .75) * 18, 220, 205, loopTime, "#ffd735");
+        drawBlob(context, 1745, 750 + Math.cos(loopTime * .58) * 26, 150, loopTime + 2, "#ff8b67");
+
+        context.save();
+        context.translate(1080, 545);
+        context.rotate(loopTime * .17);
+        context.strokeStyle = "rgba(21,52,59,.2)";
+        context.lineWidth = 7;
+        context.beginPath();
+        context.arc(0, 0, 178 + Math.sin(elapsed) * 14, -.6, 2.7);
+        context.stroke();
+        context.restore();
+
+        context.fillStyle = "#15343b";
+        context.beginPath();
+        context.arc(100, 91, 24, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = "#fff8e6";
+        context.font = "800 22px Arial, sans-serif";
+        context.fillText("K", 91, 99);
+        context.font = "800 17px Arial, sans-serif";
+        context.fillStyle = "#15343b";
+        context.fillText("KINSHASA", 137, 97);
+        context.font = "700 14px Arial, sans-serif";
+        context.fillStyle = "#54757b";
+        context.fillText("UNE VILLE, MILLE ENVIES", 1608, 94);
+
+        context.globalAlpha = Math.min(1, sceneProgress * 5 + .12);
+        context.fillStyle = scene.color;
+        roundedPath(context, 160, 253, 12, 38, 6);
+        context.fill();
+        context.font = "800 20px Arial, sans-serif";
+        context.fillText(`0${sceneIndex + 1}  /  ${scene.tag}`, 190, 280);
+        context.globalAlpha = 1;
+
+        drawKineticLine(context, scene.title[0], 160, 436, sceneProgress + .08, "#ff582f", "#15343b");
+        drawKineticLine(context, scene.title[1], 160, 557, sceneProgress - .10, "#ff582f", "#15343b");
+
+        const bodyProgress = Math.max(0, Math.min(1, (sceneProgress - .36) * 3.2));
+        context.save();
+        context.globalAlpha = bodyProgress;
+        context.font = "500 28px Arial, sans-serif";
+        context.fillStyle = "#365a60";
+        wrapCanvasText(context, scene.copy, 166, 636 + (1 - bodyProgress) * 15, 800, 42);
+        context.restore();
+
+        const pillY = 793;
+        const pillWidth = Math.min(565, 300 + scene.tag.length * 8);
+        roundedPath(context, 160, pillY, pillWidth, 62, 31);
+        context.fillStyle = "#15343b";
+        context.fill();
+        context.fillStyle = "#fff8e6";
+        context.font = "800 18px Arial, sans-serif";
+        context.fillText(scene.tag, 188, pillY + 39);
+
+        const showPhones = Math.max(0, Math.min(1, sceneProgress * 2.6));
+        const [mainImage, secondImage] = imageSets[sceneIndex];
+        const phoneFloat = Math.sin(loopTime * 2.4) * 9;
+        drawPhone(context, secondImage, 1504 + (1 - showPhones) * 85, 276 + phoneFloat * .7, 246, 532, .055, showPhones * .92);
+        drawPhone(context, mainImage, 1236 + (1 - showPhones) * 112, 166 + phoneFloat, 318, 688, -.035, showPhones);
+
+        const cardIn = Math.max(0, Math.min(1, (sceneProgress - .27) * 4));
+        context.save();
+        context.globalAlpha = cardIn;
+        context.translate(1432 + (1 - cardIn) * 50, 808 + Math.sin(loopTime * 2) * 7);
+        context.rotate(.035);
+        context.shadowColor = "rgba(21,52,59,.15)";
+        context.shadowBlur = 24;
+        context.shadowOffsetY = 10;
+        roundedPath(context, 0, 0, 335, 92, 23);
+        context.fillStyle = "#fffaf0";
+        context.fill();
+        context.shadowColor = "transparent";
+        context.fillStyle = scene.color;
+        context.beginPath();
+        context.arc(47, 46, 21, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = "#15343b";
+        context.font = "900 22px Arial, sans-serif";
+        context.fillText(sceneIndex === 4 ? "✓" : "✦", 39, 54);
+        context.fillStyle = "#15343b";
+        context.font = "800 17px Arial, sans-serif";
+        context.fillText(["La ville s’anime", "À portée de main", "Gardé pour toi", "À toi de jouer", "C’est envoyé"][sceneIndex], 82, 43);
+        context.font = "500 13px Arial, sans-serif";
+        context.fillStyle = "#54757b";
+        context.fillText(["Les bonnes idées, tout autour", "Le bon endroit, au bon moment", "Ton prochain souvenir est noté", "Fais connaître ton événement", "Prêt à faire vibrer la ville"][sceneIndex], 82, 66);
+        context.restore();
+
+        context.fillStyle = "#54757b";
+        context.font = "700 15px Arial, sans-serif";
+        context.fillText("LES BONNES CHOSES ARRIVENT", 100, 1018);
+        context.fillStyle = "rgba(21,52,59,.14)";
+        roundedPath(context, 1590, 1000, 230, 6, 3);
+        context.fill();
+        context.fillStyle = "#ff582f";
+        roundedPath(context, 1590, 1000, 230 * ((sceneIndex + sceneProgress) / 5), 6, 3);
+        context.fill();
+
+        const sceneSeconds = sceneProgress * 4;
+        const wipeProgress = sceneSeconds >= 3.8
+          ? (sceneSeconds - 3.8) * 5
+          : sceneSeconds < .2 ? 1 - sceneSeconds * 5 : 0;
+        if (wipeProgress > 0) {
+          const wipeEdge = -300 + wipeProgress * (width + 600);
+          context.fillStyle = "#ff582f";
+          context.beginPath();
+          context.moveTo(-width, 0);
+          context.lineTo(wipeEdge, 0);
+          context.lineTo(wipeEdge - 230, height);
+          context.lineTo(-width, height);
+          context.closePath();
+          context.fill();
+          context.fillStyle = "#ffd735";
+          context.beginPath();
+          context.moveTo(-width, 0);
+          context.lineTo(wipeEdge - 54, 0);
+          context.lineTo(wipeEdge - 284, height);
+          context.lineTo(-width, height);
+          context.closePath();
+          context.fill();
+        }
+        context.restore();
+      }
+
+      function noteFrequency(midi) {
+        return 440 * Math.pow(2, (midi - 69) / 12);
+      }
+
+      function schedulePluck(context, destination, frequency, start, duration, amplitude, type) {
+        const oscillator = context.createOscillator();
+        const envelope = context.createGain();
+        oscillator.type = type || "triangle";
+        oscillator.frequency.setValueAtTime(frequency, start);
+        envelope.gain.setValueAtTime(.0001, start);
+        envelope.gain.exponentialRampToValueAtTime(amplitude, start + .012);
+        envelope.gain.exponentialRampToValueAtTime(.0001, start + duration);
+        oscillator.connect(envelope);
+        envelope.connect(destination);
+        oscillator.start(start);
+        oscillator.stop(start + duration + .03);
+      }
+
+      function createBeat(context, destination, startAt) {
+        const beatDuration = .5;
+        const chords = [
+          [50, 54, 57], [45, 49, 52], [47, 50, 54], [43, 47, 50],
+          [50, 54, 57], [45, 49, 52], [43, 47, 50], [45, 49, 52],
+          [50, 54, 57], [50, 54, 57]
+        ];
+        const noiseBuffer = context.createBuffer(1, Math.ceil(context.sampleRate * .18), context.sampleRate);
+        const noise = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < noise.length; i++) noise[i] = Math.random() * 2 - 1;
+
+        function drumNoise(time, duration, volume, cutoff) {
+          const source = context.createBufferSource();
+          const filter = context.createBiquadFilter();
+          const envelope = context.createGain();
+          source.buffer = noiseBuffer;
+          filter.type = "highpass";
+          filter.frequency.setValueAtTime(cutoff, time);
+          envelope.gain.setValueAtTime(volume, time);
+          envelope.gain.exponentialRampToValueAtTime(.001, time + duration);
+          source.connect(filter);
+          filter.connect(envelope);
+          envelope.connect(destination);
+          source.start(time);
+          source.stop(time + duration);
+        }
+
+        for (let beat = 0; beat < 40; beat++) {
+          const time = startAt + beat * beatDuration;
+          const chord = chords[Math.floor(beat / 4)];
+          if (beat % 4 === 0 || beat % 4 === 2) {
+            const kick = context.createOscillator();
+            const envelope = context.createGain();
+            kick.type = "sine";
+            kick.frequency.setValueAtTime(142, time);
+            kick.frequency.exponentialRampToValueAtTime(48, time + .14);
+            envelope.gain.setValueAtTime(.5, time);
+            envelope.gain.exponentialRampToValueAtTime(.001, time + .18);
+            kick.connect(envelope);
+            envelope.connect(destination);
+            kick.start(time);
+            kick.stop(time + .2);
+          } else {
+            drumNoise(time, .13, .11, 1500);
+            schedulePluck(context, destination, 185, time, .09, .11, "triangle");
+          }
+
+          schedulePluck(context, destination, noteFrequency(chord[0] - 12), time, .37, .16, "triangle");
+          const arp = chord[beat % 3] + 12;
+          schedulePluck(context, destination, noteFrequency(arp), time + .25, .17, .075, "triangle");
+          drumNoise(time, .035, .028, 7500);
+
+          if (beat % 4 === 0) {
+            chord.forEach((note, index) => {
+              schedulePluck(context, destination, noteFrequency(note + 12), time + index * .016, 1.45, .026, "sine");
+            });
+          }
+        }
+
+        for (let eighth = 0; eighth < 80; eighth++) {
+          drumNoise(startAt + eighth * beatDuration / 2, .025, eighth % 4 === 0 ? .045 : .022, 8500);
+        }
+      }
+
+      async function exportVideo() {
+        const wasPlaying = playing;
+        exportButton.disabled = true;
+        exportStatus.textContent = "Préparation du rendu 4K…";
+        let recorder;
+        let mediaStream;
+        let audioContext;
+        let frameTimer;
+        let progressTimer;
+        let recording = false;
+        const duration = 20;
+
+        try {
+          if (typeof window.showSaveFilePicker !== "function") {
+            throw new Error("L’export 4K nécessite un navigateur récent comme Chrome ou Edge.");
+          }
+          const mimeTypes = [
+            "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
+            "video/mp4;codecs=avc1.640033,mp4a.40.2",
+            "video/webm;codecs=vp9,opus"
+          ];
+          const mimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type));
+          if (!mimeType) throw new Error("Aucun encodeur vidéo compatible n’est disponible dans ce navigateur.");
+
+          const extension = mimeType.startsWith("video/mp4") ? "mp4" : "webm";
+          const handle = await window.showSaveFilePicker({
+            suggestedName: "Kinshasa-en-mouvement-4K." + extension,
+            types: [{
+              description: extension === "mp4" ? "Vidéo MP4" : "Vidéo WebM",
+              accept: { [extension === "mp4" ? "video/mp4" : "video/webm"]: ["." + extension] }
+            }]
+          });
+
+          setPlaying(false);
+          const imagesByAlt = new Map(Array.from(document.images, image => [image.alt, image]));
+          const imageSets = exportScenes.map(scene => scene.screens.map(alt => imagesByAlt.get(alt)));
+          if (imageSets.some(images => images.some(image => !image || !image.complete || !image.naturalWidth))) {
+            throw new Error("Une ou plusieurs maquettes n’ont pas pu être chargées.");
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = 3840;
+          canvas.height = 2160;
+          const context = canvas.getContext("2d", { alpha: false });
+          if (!context) throw new Error("Impossible de créer le canevas de rendu 4K.");
+          context.setTransform(2, 0, 0, 2, 0, 0);
+          drawArtwork(context, 0, imageSets);
+
+          audioContext = new AudioContext();
+          const audioDestination = audioContext.createMediaStreamDestination();
+          const master = audioContext.createGain();
+          master.gain.value = .58;
+          const compressor = audioContext.createDynamicsCompressor();
+          compressor.threshold.value = -18;
+          compressor.knee.value = 12;
+          compressor.ratio.value = 5;
+          master.connect(compressor);
+          compressor.connect(audioDestination);
+          compressor.connect(audioContext.destination);
+
+          mediaStream = canvas.captureStream(0);
+          const videoTrack = mediaStream.getVideoTracks()[0];
+          if (typeof videoTrack.requestFrame !== "function") {
+            throw new Error("La capture vidéo image par image n’est pas prise en charge par ce navigateur.");
+          }
+          mediaStream.addTrack(audioDestination.stream.getAudioTracks()[0]);
+          recorder = new MediaRecorder(mediaStream, {
+            mimeType,
+            videoBitsPerSecond: 18000000,
+            audioBitsPerSecond: 192000
+          });
+
+          const chunks = [];
+          let recordingError;
+          recorder.ondataavailable = event => {
+            if (event.data.size) chunks.push(event.data);
+          };
+          recorder.onerror = event => {
+            recordingError = event.error || new Error("L’encodeur vidéo s’est interrompu.");
+          };
+
+          await audioContext.resume();
+          const audioStart = audioContext.currentTime + .15;
+          createBeat(audioContext, master, audioStart);
+          const startedAt = performance.now();
+          function render() {
+            if (!recording) return;
+            const elapsed = Math.min((performance.now() - startedAt) / 1000, duration);
+            drawArtwork(context, elapsed >= duration - .12 ? duration : elapsed, imageSets);
+            videoTrack.requestFrame();
+          }
+
+          recording = true;
+          recorder.start(1000);
+          videoTrack.requestFrame();
+          frameTimer = window.setInterval(render, 1000 / 24);
+          const began = performance.now();
+          progressTimer = window.setInterval(() => {
+            const seconds = Math.min(duration, Math.floor((performance.now() - began) / 1000));
+            exportStatus.textContent = `Rendu 4K · ${seconds} / ${duration} s`;
+          }, 500);
+          await new Promise((resolve, reject) => {
+            recorder.onstop = () => recordingError ? reject(recordingError) : resolve();
+            window.setTimeout(() => {
+              if (recorder.state !== "recording") return;
+              drawArtwork(context, duration, imageSets);
+              videoTrack.requestFrame();
+              window.setTimeout(() => {
+                if (recorder.state === "recording") recorder.stop();
+              }, 100);
+            }, duration * 1000);
+          });
+
+          window.clearInterval(progressTimer);
+          progressTimer = undefined;
+          const video = new Blob(chunks, { type: recorder.mimeType });
+          if (!video.size) throw new Error("Le fichier vidéo est vide : l’encodage a échoué.");
+          const writable = await handle.createWritable();
+          await writable.write(video);
+          await writable.close();
+          exportStatus.textContent = `Vidéo 4K enregistrée · ${(video.size / 1024 / 1024).toFixed(1)} Mo`;
+        } catch (error) {
+          if (error.name === "AbortError") {
+            exportStatus.textContent = "Export annulé.";
+          } else {
+            exportStatus.textContent = `Échec de l’export : ${error.message}`;
+            console.error("Échec du rendu vidéo 4K", error);
+          }
+        } finally {
+          recording = false;
+          window.clearInterval(progressTimer);
+          window.clearInterval(frameTimer);
+          if (recorder && recorder.state === "recording") recorder.stop();
+          if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
+          if (audioContext && audioContext.state !== "closed") await audioContext.close();
+          exportButton.disabled = false;
+          if (wasPlaying) setPlaying(true);
+        }
+      }
+
+      exportButton.addEventListener("click", exportVideo);
+      show(0);
+      setPlaying(playing);
+    })();
+  </script>
+</body>
+</html>
